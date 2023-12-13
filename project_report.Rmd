@@ -1,0 +1,589 @@
+---
+title: "London Marathon Data Analysis"
+subtitle: "Team 6"
+author: "Longxiang Wu, Navpreet Singh Sandhu, Shengle Yan "
+output:
+  html_document:
+    code_folding: hide
+date: "2023-12-13"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+library(forecast)
+remotes::install_github("nrennie/LondonMarathon")
+data(winners, package = "LondonMarathon")
+data(london_marathon, package = "LondonMarathon")
+
+```
+
+
+# Project outline {.tabset}
+
+## Introduction
+
+### What is the data about?  
+The London Marathon, or the TCS London Marathon, is a truly special event that brings people from all walks of life together. It was the brainchild of visionaries Chris Brasher and John Disley back in 1981 and has since become the UK's second-largest annual road race, second only to the famous Great North Run in Newcastle.
+
+Usually happening in April, the marathon had a temporary switch to October in 2020, 2021, and 2022 due to the challenges posed by the COVID-19 pandemic. The course itself is known for its mostly flat terrain, winding its way around the beautiful River Thames, starting at Blackheath and ending with a grand finish at The Mall.
+
+But the London Marathon isn't just a race; it's a melting pot of experiences. There's the mass race, where people of all fitness levels challenge themselves and relish the thrill of completing a marathon. For elite long-distance runners, both men and women, there are professional races showcasing top-tier athleticism. Wheelchair races provide a platform for elite-level competition among both men and women. 
+
+Now, let's dive into the details of the marathon with the comprehensive data:
+
+London Marathon Data:
+
+   - This dataset spills the beans on everything from the number of applicants to accepted participants, starters, finishers, funds raised, and the official charities associated with each year.
+
+Winner Data:
+
+   - The second set of data gives us the lowdown on the winners in different categories over the years, including details like the category, year, the winning athlete's name, nationality, and their finishing time.
+
+What truly sets the London Marathon apart is its heartwarming philanthropic side. Participants aren't just running for personal glory; they're making a difference. Since its start, the marathon has raised over £1 billion for various charities. In 2019 alone, an incredible £66.4 million was raised, marking it as the highest single-day fundraising event in the marathon's history.
+
+So, as the London Marathon continues to capture hearts and inspire runners worldwide, it's not just a race; it's a legacy of community, achievement.
+
+### Questions that we will look at and the methods we used
+
+1) Analyzing Trends in Winning Times Over the Years:
+   Our examination of winning times involves creating time series plots for each category or utilizing regression analysis to identify significant trends. Through careful comparison and the use of visualizations, we aim to uncover patterns and changes in winning times across various categories.
+   Exploring Wheelchair Winners' Performances:
+   Shifting our focus to inclusivity, we analyze the performances of wheelchair winners to understand how their achievements have evolved. A detailed examination of winning times helps us visualize trends, celebrating the success of wheelchair participants in the marathon.
+
+2) Comparing Winning Times Between Categories:
+   Using t-tests or analysis of variance (ANOVA), we compare winning times between different categories such as Men vs. Women and Wheelchair Men vs. Wheelchair Women. This analysis enables the exploration of variations in performance and identification of any significant differences between these categories.
+
+
+3) Correlation Analysis:
+   To delve deeper into the relationships within the data, we conduct correlation analysis. 
+
+
+4) In our exploration of the rich history of the London Marathon, we delve into a detailed examination of different aspects. To begin, let's uncover the evolving trends in marathon participation over the years by closely examining changes in the number of applicants and accepted participants. To give these numbers context and meaning, we calculate the percentage of participants who moved from being accepted to actually starting the race and, subsequently, the percentage of those starters who successfully finished. This analysis aims to reveal any noticeable trends or patterns, breathing life into the raw numbers.
+
+
+
+In the realm of inclusivity, we shift our focus to wheelchair winners, seeking to understand how their performances have evolved over the years. Through a detailed analysis of winning times, we aim to visualize trends and patterns, celebrating the achievements of wheelchair participants in the marathon.
+
+
+Turning our attention to the marathon heroes, we delve into the winner analysis. The spotlight is on the most successful marathon winners, and we aim to understand how their performances have evolved over time. By examining variables such as nationality, winning times, and identifying any discernible patterns, Visualizing winning times over the years adds a vivid layer to this exploration.
+
+
+Geographical analysis becomes our compass as we investigate trends or patterns in the nationalities of winners. Employing visualizations through  maps, we seek to represent the distribution of winners' nationalities, painting a global picture of the marathon's diverse champions.
+
+In the financial realm, we track the yearly fundraising growth, exploring how the total fundraising amount has changed annually. Utilizing a line chart, we aim to capture the financial heartbeat of the London Marathon, identifying any significant spikes or drops and understanding the financial narrative that accompanies this iconic event.
+
+we delve into long-term charity partnerships. By identifying charities that have consistently participated, we analyze their fundraising trends over time. This exploration unveils the enduring commitment of these charitable partners to the London Marathon and the impact of their contributions.
+
+Lastly, we conduct a comparative analysis to understand how the number of male and female participants has changed over the years. Through visualizations, we aim to illustrate the evolving dynamics of gender participation in the London Marathon, showcasing the inclusive spirit of this remarkable event.
+
+### What information does the data contain? Cases, variables? How was it collected?
+
+The data provided gives us insights into the London Marathon, offering details on the number of applicants, accepted participants, starters, finishers, funds raised, and the official charities involved for each year. Additionally, we have separate information on the winners across different categories such as Men, Women, Wheelchair Men, and Wheelchair Women throughout the years.
+
+Let's break down the key aspects:
+
+Cases: Each row in the datasets represents a specific year of the London Marathon. There are 42 entries in the "London Marathon Data" and 165 entries in the "Winner.csv" data.
+
+Variables in London Marathon Data:
+
+   - Date: Reflecting the date of the London Marathon.
+   - Year: Indicating the corresponding year of the London Marathon.
+   - Applicants: The count of individuals applying to participate in the marathon.
+   - Accepted: The number of applicants who secured a spot to participate.
+   - Starters: The count of participants who initiated the marathon.
+   - Finishers: The number of participants successfully completing the marathon.
+   - Raised: The total amount of money raised during the marathon.
+   - Official Charity: The designated charity associated with the marathon for that specific year.
+
+Variables in Winner Data:
+
+   - Category: Specifies the category of the winner (Men, Women, Wheelchair Men, Wheelchair Women).
+   - Year: Denoting the year when the London Marathon took place.
+   - Athlete: The name of the winning athlete.
+   - Nationality: The country of origin of the winning athlete.
+   - Time: The duration taken by the winning athlete to complete the marathon.
+
+How was it collected?
+
+   - The data seems to have been collected over the years, possibly sourced from official records, the official website of the London Marathon, event organizers, media outlets such as BBC, and other reliable sources associated with the event. The information could have been compiled from participant registrations, event statistics, official reports, and media coverage.
+
+
+
+
+
+## Data Wrangling
+
+As the datasets are different aspects of information about london marathon, we choose not to combine them but analyze them seperately.
+
+
+### Which subset of the data is relevant to our research question? Have we filtered out any observations from the analysis? Have we created new variables?
+- For the winners dataset, all variables and observations are relevant. For the london_marathon dataset, only variables Year, Applicants, Accepted, Starters, Finishers are relevant to our research questions.
+- For the winners dataset, no observation is filtered out. For the london_marathon dataset, we filtered out the observation in year 2020-2022.
+- We created new variables, which are accepted ratio and finishers ratio, in the london_marathon dataset.
+
+### Methods dealing with missing values
+1. Deleting
+2. Interpolation
+- mean\median\mode
+- KNN
+- stochastic interpolation
+- EM
+- Lagrange interpolation
+- Hot-Deck imputation
+3. Multiple Interpolation
+- predictive mean matching
+- propensity score
+- Markov Chain Monte Carlo
+4. Models
+- regression
+- Bayesian models
+- Random Forest
+- Decision Tree
+5. Mapping to higher dimensions
+6. Stochastic filling
+- Bayesian bootstrap
+- Approximate Bayesian Bootstrap
+6. Not dealing with
+
+We chose not dealing with the missing values, in london_marathon dataset. The reason is that those values are missing systematically. No appropriate methods are candidates until we figured out why they are missing, which is beyond our capability.
+
+
+### Do variables have appropriate type?
+
+```{r}
+library(knitr)
+table <- data.frame('Column'=c('Category','Year','Athlete','Nationality','Time'), 'Class'=c('character','integer','character','character','character'), 'Description'=c('Category of race','Year','Name of the winner','Nationality of the winner','Winning time'),'Example'=c('Men',1981,'Dick Beardsley(Tie)','United States', '02:11:48'))
+kable(table, caption = "Winners")
+table2 <- data.frame('Column'=c('Date','Year','Applicants','Accepted','Starters','Finishers','Raised','Official.charity'),'Class'=c('character','integer','integer','integer','integer','integer','integer','character'),'Description'=c('Date of the race','Year','Number of people who applied','Number of people accepted','Number of people who started','Number of people who finished','Amount raised for charity(£ millions)','Official charity'),'Example'=c('1981-03-29','1981','20000','7747','7055','6255','46.5','SportsAid'))
+kable(table2, caption = "London Marathon")
+```
+
+### Are there any strange aspects to the data?
+london_marathon:
+- Observation of number of applicants in year 1981-2012 are in a unit of 1000.
+- Observations of number of applicants, accepted, starters, and finishers in year 2020 are abnormally low.
+
+
+## Winners(analysis & conclusions)
+
+### Anlysis of winners dataset
+Overview of the dataset
+```{r}
+head(winners)
+```
+
+#### Trends in winning times over the year
+```{r}
+winners_data <- winners |> mutate(Time=24*Time)
+
+winners_data$Year <- as.numeric(winners_data$Year)
+winners_data$Time <- as.numeric(winners_data$Time)
+
+# Create time series plots for all categories with captions
+ggplot(winners_data, aes(x = Year, y = Time, color = Category)) +
+  geom_line() +
+  ggtitle("Time Trends - All Categories") +
+  xlab("Year") +
+  ylab("Winning Time (in hours)") +
+  labs(caption = "Figure 1: Time trends in winning times for different categories over the years.")
+```
+Men and Women:
+
+Both Men and Women categories show a relatively linear trend over the years. For Men, the winning time decreases from around 0.09 to 0.08, indicating a consistent improvement in performance. Similarly, for Women, the winning time decreases from approximately 0.104 to 0.096, suggesting a trend of faster winning times.
+
+Wheelchair Men and Wheelchair Women:
+
+The plot reveals a substantial drop in winning times for both Wheelchair Men and Wheelchair Women over the years. Wheelchair Men’s winning time decreases from 0.1389 to 0.06, indicating a significant performance improvement. Wheelchair Women’s winning time also decreases from 0.1868 to 0.069, reflecting a substantial and consistent improvement.
+
+The overall trend suggests that there has been an improvement in athletic performance across all categories over the years, with notable drops in winning times.
+
+#### Compare winning times between different categories (i.e. How much difference there is between performance of men and women?)
+
+```{r}
+boxplot(Time ~ Category, data = winners_data)
+```
+
+```{r}
+# t-test for Men vs. Women
+t_test_men_women <- t.test(Time ~ Category, data = subset(winners_data, Category %in% c("Men", "Women")))
+print(t_test_men_women)
+```
+t-value: The t-value of -21.25 is highly significant. It indicates that the difference in mean finishing times between Men and Women is substantial, and it is unlikely to be due to random chance. The negative sign suggests that, on average, Men finish the marathon faster than Women.
+
+Degrees of Freedom: The degrees of freedom are approximately 69.816, calculated using Welch’s correction for unequal variances.
+
+Hypotheses:
+
+Null Hypothesis (H0): The mean winning time for Men is equal to the mean winning time for Women. μ(Men) = μ(Women)
+
+Alternative Hypothesis (H1): The mean winning time for Men is different from the mean winning time for Women. μ(Men) ≠ μ(Women)
+
+p-value: The p-value is extremely small (< 2.2e-16), indicating strong evidence against the null hypothesis. A low p-value indicates that the observed difference in mean winning times between Men and Women is highly unlikely to be due to random chance.
+
+Confidence Interval: The 95% confidence interval (-0.01194160 to -0.00989228) provides a range where the true difference in mean finishing times between Men and Women is likely to be found. Since this range doesn’t include zero, it supports the idea that there is a significant difference.
+
+Sample Estimates: The mean winning time for Men (0.08837516) is significantly different from the mean winning time for Women (0.09929210).
+
+Conclusion: Given the very low p-value, we reject the null hypothesis. There is strong statistical evidence to suggest that there is a significant difference in mean winning times between Men and Women. The negative mean difference in the confidence interval indicates that, on average, Men have a lower winning time compared to Women.
+
+```{r}
+# t-test for Wheelchair Men vs. Wheelchair Women
+t_test_wheelchair <- t.test(Time ~ Category, data = subset(winners_data, Category %in% c("Wheelchair Men", "Wheelchair Women")))
+print(t_test_wheelchair)
+```
+t-value: The t-value is -3.684, indicating a substantial difference between the mean winning times of Wheelchair Men and Wheelchair Women. The negative sign suggests that, on average, Wheelchair Women have a higher winning time.
+
+Degrees of Freedom (df): The degrees of freedom are 66.574, calculated using Welch’s method.
+
+Null Hypothesis (H0): The mean winning times for Wheelchair Men and Wheelchair Women are equal. Alternative Hypothesis (HA): The mean winning times for Wheelchair Men and Wheelchair Women are not equal.
+
+p-value = 0.0004625: The p-value is less than 0.05, indicating that there is strong evidence to reject the null hypothesis.
+
+95 percent confidence interval: The range -0.025672067 to -0.007628028 represents the range within which we can be 95% confident that the true difference in means lies. In this case, it suggests that the mean winning time for Wheelchair Women is likely to be between 0.0076 and 0.0256 higher than that of Wheelchair Men.
+
+With a small p-value and a negative t-value, there is evidence to suggest that there is a statistically significant difference in winning times between Wheelchair Men and Wheelchair Women. The mean winning time for Wheelchair Women appears to be significantly higher than that for Wheelchair Men. The 95% confidence interval provides a range for the magnitude of this difference.
+
+```{r}
+# ANOVA for Men vs. Women vs. Wheelchair Men vs. Wheelchair Women
+anova_model <- aov(Time ~ Category, data = subset(winners_data, Category %in% c("Men", "Women", "Wheelchair Men", "Wheelchair Women")))
+summary(anova_model)
+```
+Null Hypothesis (H0): There is no significant difference in mean winning times among the categories.
+
+Alternative Hypothesis (H1): There is a significant difference in mean winning times among at least one pair of categories.
+
+I reject the null hypothesis, concluding that there are significant differences in mean winning times across at least one pair of categories (Men, Women, Wheelchair Men, Wheelchair Women).
+
+F-Test: The F value of 24.34 is higher than expected by chance, signifying significant differences in mean winning times among categories.
+
+p-value: With a tiny p-value (4.81e-13), there is substantial evidence against the null hypothesis, implying significant differences in mean winning times.
+
+#### Explore potential correlations between winning times and other variables
+```{r}
+# Explore potential correlations between winning times and other variables.
+
+# Convert 'Nationality' to a factor variable
+winners_data$Nationality <- as.factor(winners_data$Nationality)
+
+# Calculate correlation coefficients
+cor_year_time <- cor(winners_data$Year, winners_data$Time, method = "pearson")
+cor_nat_time <- cor(as.numeric(winners_data$Nationality), winners_data$Time, method = "spearman")
+
+print(paste("Correlation between Year and Time (Pearson):", cor_year_time))
+print(paste("Correlation between Nationality and Time (Spearman):", cor_nat_time))
+```
+We observed a correlation between Year and Time (Pearson) of -0.4648, indicating a moderate negative linear relationship. As the Year increases, the Time tends to decrease moderately. The closer the correlation coefficient is to -1, the stronger the negative linear relationship.
+
+Furthermore, the correlation between Nationality and Time (Spearman) is -0.1314, suggesting a weak negative monotonic relationship. As the ranks of Nationality increase, the Time tends to decrease weakly. The closer the Spearman correlation coefficient is to -1, the stronger the negative monotonic relationship.
+
+```{r}
+winners_data$Time <- as.numeric(winners_data$Time)
+
+# Performing ANOVA
+anova_model <- aov(Time ~ Nationality, data = winners_data)
+anova_summary <- summary(anova_model)
+
+# Print ANOVA summary
+print(anova_summary)
+
+# In case the assumptions of ANOVA are not met, use Kruskal-Wallis test as a non-parametric alternative
+kruskal_test <- kruskal.test(Time ~ Nationality, data = winners_data)
+print(kruskal_test)
+```
+
+#### Summarize which country has the most winners based on category
+```{r,warning=FALSE,message=FALSE}
+winners_data |> group_by(Category,Nationality) |> summarise(count = n()) |> arrange(desc(count)) |> slice_head()
+
+```
+
+
+## Marathon(analysis & conclusions)
+Overview of the dataset
+```{r}
+head(london_marathon)
+```
+
+Inst from the data
+```{r}
+cat("missing value count:", sum(is.na(london_marathon)))
+```
+
+```{r}
+missing_percentage <- colMeans(is.na(london_marathon)) * 100
+plot_data <- data.frame(
+  variable = names(missing_percentage),
+  percentage = missing_percentage
+)
+ggplot(plot_data, aes(x = variable, y = percentage)) +
+  geom_bar(stat = "identity", fill = "skyblue", width = 0.5) +
+  labs(title = "Percentage of missing values in London Marathon", y = "Percentage") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+So we can see that there are some missing values regarding the London Marathon.
+
+the Raised means amount raised for charity (£ millions), and the Official charity means Official charity.
+
+So we can think that if Official charity is NULL, it means there is no Official charity, then Raised should be 0 (or remove these values when analyzing Raised). If Official charity is not empty, and Raised is empty, then Raised Non-public, then we can fill it in using the average of other data.
+
+For the missing other fields, we can see that the fields are the same. According to the official documentation (github), the data for the last two years is missing, so we should filter out the data for these two year (about london_marathon).
+
+```{r}
+london_marathon1 <- london_marathon %>% group_by(`Official charity`) %>% mutate(Raised=ifelse(is.na(Raised) & !is.na(`Official charity`), mean(london_marathon$Raised, na.rm=T), Raised))
+
+london_marathon1 <- london_marathon1 %>% mutate(Raised=ifelse(is.na(`Official charity`), 0, Raised))
+
+london_marathon1 <- london_marathon1 %>% mutate(`Official charity`=ifelse(is.na(`Official charity`), "None", `Official charity`))
+
+london_marathon1 <- london_marathon1 %>% filter(Year < max(london_marathon1$Year) - 1)
+
+cat("new missing value count:", sum(is.na(london_marathon1)))
+```
+
+
+```{r}
+ggplot(london_marathon1, aes(x = Year, y = Raised)) +
+  geom_line() +
+  labs(title = "Raised Over the Years in London Marathon",
+       x = "Year",
+       y = "Raised") +
+  theme_minimal()
+```
+
+From the line chart, we can see that the Raised data we filled is not helpful in analyzing the changes in Raised data. If we want to analyze the changes in this part, we only need to focus on the data from 2007 to 2019.
+
+```{r}
+filter_data <- london_marathon1 %>% filter(Year >= 2007 & Year <= 2019)
+filter_data
+```
+
+
+```{r}
+ggplot(filter_data, aes(x=Year, y=Raised, group=1))+
+  geom_line() + 
+  geom_point() + 
+  theme()
+```
+It can be seen that fundraising increases every year.
+
+
+It can be seen from this plot that the winning time of men and women in wheelchairs has become significantly faster, while the winning time of normal men and women has gradually become faster, indicating that people are gradually paying attention to the competitiveness of marathon sports.
+
+```{r}
+# london marathon plot
+london_plot <- london_marathon %>%
+  filter(Year < 2020) %>%
+  mutate(Year = factor(Year))
+
+ggplot(
+  data = london_plot,
+  mapping = aes(y = Year)
+) +
+  geom_point(aes(x = Starters),
+    colour = "#008080"
+  ) +
+  geom_point(aes(x = Finishers),
+    colour = "#800080"
+  ) +
+  geom_segment(aes(
+    x = Starters,
+    xend = Finishers,
+    y = Year,
+    yend = Year
+  )) +
+  labs(
+    x = "Number of runners",
+    title = "Number of London Marathon Starters and Finishers"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.title.y = element_blank(),
+    plot.background = element_rect(fill = "white", colour = "white"),
+    panel.background = element_rect(fill = "white", colour = "white")
+  )
+```
+
+
+### Trends in number of applicants, accepted, starters, and finishers over year.
+```{r}
+par(mfrow=c(2,2))
+sub_london <- london_marathon[1:39,]
+p1 <- ggplot(data= sub_london, aes(x=Year, y=Applicants ))+geom_point()+geom_line()
+p2 <- ggplot(data= sub_london, aes(x=Year, y=Accepted ))+geom_point()+geom_line()
+p3 <- ggplot(data= sub_london, aes(x=Year, y=Starters ))+geom_point()+geom_line()
+p4 <- ggplot(data= sub_london, aes(x=Year, y=Finishers))+geom_point()+geom_line()
+grid.arrange(p1, p2, p3, p4, nrow=2, ncol=2)
+```
+
+
+### Linear models for applicants versus year, accepted versus year, starters versus year, and finishers versus year
+```{r}
+fit1 <- lm(Applicants ~ Year, data = sub_london)
+fit2 <- lm(Accepted ~ Year, data = sub_london)
+fit3 <- lm(Starters ~ Year, data = sub_london)
+fit4 <- lm(Finishers ~ Year, data = sub_london)
+summary(fit1)
+summary(fit2)
+summary(fit3)
+summary(fit4)
+```
+
+### Create new variables(ratios of accepted, starters, and finishers) and visulization
+```{r}
+london_marathon <- london_marathon |> mutate(`Ratio of Accepted`=Accepted/Applicants)|>mutate(`Ratio of Starters`=Starters/Accepted)|> mutate(`Ratio of Finishers`=Finishers/Starters)
+print(london_marathon[, c("Year", "Ratio of Accepted", "Ratio of Starters","Ratio of Finishers")])
+
+
+```
+Accepted to Started: Over the years, there is a general trend of a decline in the percentage of accepted participants who actually start the race.
+
+Started to Finished:
+
+The percentage of starters who finish the race seems to be relatively stable, generally ranging from the high 80s to mid-90s.
+
+Notable Observation (2020):
+
+In 2020, there’s a notable observation in the “Accepted to Started” column. The percentage is 100%, indicating that all accepted participants started the race. However, the “Started to Finished” percentage is lower (79.22%), indicating that not all starters completed the race.
+
+This discrepancy could be due to the impact of external factors such as the COVID-19 pandemic, leading to a different pattern in that particular year.
+
+```{r}
+sub_london1 <- london_marathon[1:39,]
+p1 <- ggplot(data= sub_london1, aes(x=Year, y=`Ratio of Accepted` ))+geom_point()+geom_line()
+p2 <- ggplot(data= sub_london1, aes(x=Year, y=`Ratio of Starters` ))+geom_point()+geom_line()
+p3 <- ggplot(data= sub_london1, aes(x=Year, y=`Ratio of Finishers` ))+geom_point()+geom_line()
+grid.arrange(p1, p2, p3, nrow=2, ncol=2)
+```
+
+### Time series analysis and forecasting
+Here we use ARIMA model to make forecasts for the time series in london marathon dataset
+#### Applicants
+
+```{r}
+plotForecastErrors <- function(forecasterrors)
+  {
+     # make a histogram of the forecast errors:
+     mybinsize <- IQR(forecasterrors)/4
+     mysd   <- sd(forecasterrors)
+     mymin  <- min(forecasterrors) - mysd*5
+     mymax  <- max(forecasterrors) + mysd*3
+     # generate normally distributed data with mean 0 and standard deviation mysd
+     mynorm <- rnorm(10000, mean=0, sd=mysd)
+     mymin2 <- min(mynorm)
+     mymax2 <- max(mynorm)
+     if (mymin2 < mymin) { mymin <- mymin2 }
+     if (mymax2 > mymax) { mymax <- mymax2 }
+     # make a red histogram of the forecast errors, with the normally distributed data overlaid:
+     mybins <- seq(mymin, mymax, mybinsize)
+     hist(forecasterrors, col="red", freq=FALSE, breaks=mybins)
+     # freq=FALSE ensures the area under the histogram = 1
+     # generate normally distributed data with mean 0 and standard deviation mysd
+     myhist <- hist(mynorm, plot=FALSE, breaks=mybins)
+     # plot the normal curve as a blue line on top of the histogram of forecast errors:
+     points(myhist$mids, myhist$density, type="l", col="blue", lwd=2)
+}
+```
+
+```{r}
+app <- london_marathon$Applicants[1:40]
+appts <- ts(app, ,frequency=1,start=1981)
+appts <- na.omit(appts)
+apptsarima <- auto.arima(appts)
+fc <- forecast(apptsarima, h=10)
+plot(fc)
+acf(fc$residuals, lag.max=20)
+Box.test(fc$residuals, lag=20, type="Ljung-Box")
+plotForecastErrors(fc$residuals)
+```
+
+
+#### Ratio of Accepted
+```{r}
+roa <- london_marathon$`Ratio of Accepted`
+roats <- ts(roa, ,frequency=1,start=1981)
+roats<- na.omit(roats)
+roatsarima <- auto.arima(roats)
+fc2 <- forecast(roatsarima, h=10)
+plot(fc2)
+acf(fc2$residuals, lag.max=20)
+Box.test(fc2$residuals, lag=20, type="Ljung-Box")
+plotForecastErrors(fc2$residuals)
+```
+
+#### Ratio of Starters
+
+```{r}
+ros <- london_marathon$`Ratio of Starters`
+rosts <- ts(ros, ,frequency=1,start=1981)
+rosts <- na.omit(rosts)
+rostsarima <- auto.arima(rosts)
+fc2 <- forecast(rostsarima, h=10)
+plot(fc2)
+acf(fc2$residuals, lag.max=20)
+Box.test(fc2$residuals, lag=20, type="Ljung-Box")
+plotForecastErrors(fc2$residuals)
+```
+
+
+#### Ratio of Finishers
+```{r}
+rof <- london_marathon$`Ratio of Finishers`
+rofts <- ts(rof, ,frequency=1,start=1981)
+rofts <- na.omit(rofts)
+roftsarima <- auto.arima(rofts)
+fc <- forecast(roftsarima, h=10)
+plot(fc)
+acf(fc$residuals, lag.max=20)
+Box.test(fc$residuals, lag=20, type="Ljung-Box")
+plotForecastErrors(fc$residuals)
+```
+
+
+
+## Clarification
+Though there are some overlaps between our team members works, we came up the question independently and did the analysis independently. The report is an integration of our work. Here are the jobs that we did:
+
+#### Longxiang Wu
+data wrangling part  
+winner dataset  
+- plot of time versus year  
+- boxplots of time based on category  
+- analysis of difference of athletes’ performance based on nationality  
+- analysis of difference between performance of men and women  
+- summarising coutries that have the most winners  
+london_marathon dataset  
+- plots of variables(applicants,accepted,starters,finishers) versus year  
+- creating and plots of new variables  
+- linear models for the dataset  
+- time series analysis and forecasting  
+integrated team's works and composed report V1.0  
+
+
+#### Navpreet Singh Sandhu 
+introduction part  
+winner dataset  
+- analyzing trends in winning times over the year  
+- comparing winning times between different categories  
+- exploring potential correlations between winning times and other variables  
+london_marathon dataset  
+- creating new variables  
+
+
+#### Shengle Yan
+
+
+
+
+
+
+
+
