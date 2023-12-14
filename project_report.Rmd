@@ -1,7 +1,7 @@
 ---
 title: "London Marathon Data Analysis"
 subtitle: "Team 6"
-author: "Longxiang Wu, Navpreet Singh Sandhu, Shengle Yan "
+author: "Longxiang Wu, Navpreet Singh Sandhu, Shengle Yan, Ranjith Kumar Subramaniyan "
 output:
   html_document:
     code_folding: hide
@@ -123,26 +123,28 @@ How was it collected?
 As the datasets are different aspects of information about london marathon, we choose not to combine them but analyze them seperately.
 
 
-### Which subset of the data is relevant to our research question? Have we filtered out any observations from the analysis? Have we created new variables?
-- For the winners dataset, all variables and observations are relevant. For the london_marathon dataset, only variables Year, Applicants, Accepted, Starters, Finishers are relevant to our research questions.
-- For the winners dataset, no observation is filtered out. For the london_marathon dataset, we filtered out the observation in year 2020-2022.
-- We created new variables, which are accepted ratio and finishers ratio, in the london_marathon dataset.
+#### Which subset of the data is relevant to our research question? Have we filtered out any observations from the analysis? Have we created new variables?
+For the winners dataset, all variables and observations are relevant. For the london_marathon dataset, only variables Year, Applicants, Accepted, Starters, Finishers are relevant to our research questions.  
+
+For the winners dataset, no observation is filtered out. For the london_marathon dataset, we filtered out the observation in year 2020-2022.  
+
+We created new variables, which are ratio of accepted, ratio of starters, and ratio of finishers, in the london_marathon dataset.
 
 ### Methods dealing with missing values
 1. Deleting
 2. Interpolation
-- mean\median\mode
-- KNN
+- mean, median, mode
+- KNN(K nearest neighbor)
 - stochastic interpolation
 - EM
 - Lagrange interpolation
 - Hot-Deck imputation
 3. Multiple Interpolation
-- predictive mean matching
-- propensity score
+- Predictive Mean Matching
+- Propensity Score
 - Markov Chain Monte Carlo
 4. Models
-- regression
+- Regression
 - Bayesian models
 - Random Forest
 - Decision Tree
@@ -150,12 +152,13 @@ As the datasets are different aspects of information about london marathon, we c
 6. Stochastic filling
 - Bayesian bootstrap
 - Approximate Bayesian Bootstrap
-6. Not dealing with
+7. Not dealing with
 
 We chose not dealing with the missing values, in london_marathon dataset. The reason is that those values are missing systematically. No appropriate methods are candidates until we figured out why they are missing, which is beyond our capability.
 
 
 ### Do variables have appropriate type?
+Here is the data types summary. 
 
 ```{r}
 library(knitr)
@@ -166,9 +169,8 @@ kable(table2, caption = "London Marathon")
 ```
 
 ### Are there any strange aspects to the data?
-london_marathon:
-- Observation of number of applicants in year 1981-2012 are in a unit of 1000.
-- Observations of number of applicants, accepted, starters, and finishers in year 2020 are abnormally low.
+In the london_marathon dataset, observation of number of applicants in year 1981-2012 are in a unit of 1000. And observations of number of applicants, accepted, starters, and finishers in year 2020 are abnormally low.
+
 
 
 ## Winners(analysis & conclusions)
@@ -207,8 +209,11 @@ The overall trend suggests that there has been an improvement in athletic perfor
 #### Compare winning times between different categories (i.e. How much difference there is between performance of men and women?)
 
 ```{r}
-boxplot(Time ~ Category, data = winners_data)
+boxplot(Time ~ Category, data = winners_data, desc= T,main="Boxplots of Winning Time of Each Category")
 ```
+
+From this plot, we can see there is difference of performance between men and women.
+
 
 ```{r}
 # t-test for Men vs. Women
@@ -283,6 +288,11 @@ We observed a correlation between Year and Time (Pearson) of -0.4648, indicating
 
 Furthermore, the correlation between Nationality and Time (Spearman) is -0.1314, suggesting a weak negative monotonic relationship. As the ranks of Nationality increase, the Time tends to decrease weakly. The closer the Spearman correlation coefficient is to -1, the stronger the negative monotonic relationship.
 
+##### Test whether there is difference of athletes' performance based on nationality
+Here, the null hypothesis is that $H_0$: there is no difference of athletes' performance based on nationality. The alternative hypothesis is that $H_A$: there is difference of athletes' performance based on nationality.
+
+
+###### Anova test
 ```{r}
 winners_data$Time <- as.numeric(winners_data$Time)
 
@@ -292,11 +302,16 @@ anova_summary <- summary(anova_model)
 
 # Print ANOVA summary
 print(anova_summary)
+```
 
+###### Kruskal-Wallis test
+```{r}
 # In case the assumptions of ANOVA are not met, use Kruskal-Wallis test as a non-parametric alternative
 kruskal_test <- kruskal.test(Time ~ Nationality, data = winners_data)
 print(kruskal_test)
 ```
+
+Here we can see that both test give a p-value that is close to 0. So there is evidence to reject the null hypothesis, and we conclude that there is difference of athletes' performance based on nationality.
 
 #### Summarize which country has the most winners based on category
 ```{r,warning=FALSE,message=FALSE}
@@ -413,32 +428,164 @@ ggplot(
 ```
 
 
-### Trends in number of applicants, accepted, starters, and finishers over year.
+### Trends in number of applicants, accepted, starters, and finishers over year
 ```{r}
 par(mfrow=c(2,2))
 sub_london <- london_marathon[1:39,]
-p1 <- ggplot(data= sub_london, aes(x=Year, y=Applicants ))+geom_point()+geom_line()
-p2 <- ggplot(data= sub_london, aes(x=Year, y=Accepted ))+geom_point()+geom_line()
-p3 <- ggplot(data= sub_london, aes(x=Year, y=Starters ))+geom_point()+geom_line()
-p4 <- ggplot(data= sub_london, aes(x=Year, y=Finishers))+geom_point()+geom_line()
+p1 <- ggplot(data= sub_london, aes(x=Year, y=Applicants ))+geom_point()+geom_line()+
+  labs(title = "Applicants")
+p2 <- ggplot(data= sub_london, aes(x=Year, y=Accepted ))+geom_point()+geom_line()+
+  labs(title = "Accepted")
+p3 <- ggplot(data= sub_london, aes(x=Year, y=Starters ))+geom_point()+geom_line()+
+  labs(title = "Starters")
+p4 <- ggplot(data= sub_london, aes(x=Year, y=Finishers))+geom_point()+geom_line()+
+  labs(title = "Finishers")
 grid.arrange(p1, p2, p3, p4, nrow=2, ncol=2)
 ```
 
 
-### Linear models for applicants versus year, accepted versus year, starters versus year, and finishers versus year
-```{r}
-fit1 <- lm(Applicants ~ Year, data = sub_london)
-fit2 <- lm(Accepted ~ Year, data = sub_london)
-fit3 <- lm(Starters ~ Year, data = sub_london)
-fit4 <- lm(Finishers ~ Year, data = sub_london)
-summary(fit1)
-summary(fit2)
-summary(fit3)
-summary(fit4)
+### Analyze the dataset using linear models
+In this part, we will use linear models to fit the data and predict the number of applicants, accepted, starters, and finishers in year 2024. 
+
+From the previous part, we can see that the number of accepted, starters, and finishers versus year are generally linear. So the models we will use are $$y_i=\beta_0+\beta_1x_i+\epsilon_i, \quad \epsilon_i \sim N(0,\sigma^2)$$
+For number of applicants, the model we we will use is $$y_i=\beta_0+\beta_1x_i+\beta_2x_i^2+\beta_3x_i^3+\epsilon_i, \quad \epsilon_i \sim N(0,\sigma^2)$$
+
+Moreover, we will check the normality of the residuals.
+
+```{r, include=FALSE}
+hooks = knitr::knit_hooks$get()
+hook_foldable = function(type) {
+  force(type)
+  function(x, options) {
+    res = hooks[[type]](x, options)
+    
+    if (isFALSE(options[[paste0("fold.", type)]])) return(res)
+    
+    paste0(
+      "<details><summary>", type, "</summary>\n\n",
+      res,
+      "\n\n</details>"
+    )
+  }
+}
+knitr::knit_hooks$set(
+  output = hook_foldable("output"),
+  plot = hook_foldable("plot")
+)
 ```
 
-### Create new variables(ratios of accepted, starters, and finishers) and visulization
+#### For the number of applicants
+```{r, fold.output=FALSE, fold.plot=FALSE}
+fit1 <- lm(Applicants ~ Year + I(Year^2)+ I(Year^3), data = sub_london)
+ggplot(sub_london, aes(x = Year, y = Applicants)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 3), se = FALSE, color = "blue") +
+  theme_minimal() +
+  labs(title = "Polynomial Regression Model", x = "Year", y = "Number of Applicants")
+```
+
+##### Prediction
+
 ```{r}
+new <- data.frame('Year'= 2024)
+predict(fit1, newdata = data.frame(new), interval = c("confidence"), level = 0.95, type="response")
+```
+
+The number of applicants is estimated to be 571826 in 2024. A $95\%$ prediction interval is $(498633, 645018)$.
+
+##### Model Checking
+```{r}
+plot(fit1, which=1)
+plot(fit1, which=2)
+```
+
+
+#### For the number of accepted 
+
+```{r, fold.output=FALSE, fold.plot=FALSE}
+fit2 <- lm(Accepted ~ Year, data = sub_london)
+ggplot(sub_london, aes(x = Year, y = Accepted)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", formula = 'y ~ x',se = FALSE, color = "blue") +
+  theme_minimal() +
+  labs(title = "SLR Model for Accepted", x = "Year", y = "Number of Accepted")
+```
+##### Prediction
+
+```{r}
+new <- data.frame('Year'= 2024)
+predict(fit2, newdata = data.frame(new), interval = c("confidence"), level = 0.95, type="response")
+```
+
+The number of applicants is estimated to be 63762 in 2024. A $95\%$ prediction interval is $(60926, 66599)$.
+
+
+##### Model Checking
+```{r}
+plot(fit2, which=1)
+plot(fit2, which=2)
+```
+
+
+#### For the number of starters
+```{r, fold.output=FALSE, fold.plot=FALSE}
+fit3 <- lm(Starters ~ Year, data = sub_london)
+ggplot(sub_london, aes(x = Year, y = Starters)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", formula = 'y ~ x',se = FALSE, color = "blue") +
+  theme_minimal() +
+  labs(title = "SLR Model for Starters", x = "Year", y = "Number of Starters")
+
+```
+##### Prediction
+
+```{r}
+new <- data.frame('Year'= 2024)
+predict(fit3, newdata = data.frame(new), interval = c("confidence"), level = 0.95, type="response")
+```
+
+The number of applicants is estimated to be 46119 in 2024. A $95\%$ prediction interval is $(44331, 47907)$.
+
+
+##### Model Checking
+```{r}
+plot(fit3, which=1)
+plot(fit3, which=2)
+```
+
+
+#### For the number of finishers
+```{r, fold.output=FALSE, fold.plot=FALSE}
+fit4 <- lm(Finishers ~ Year, data = sub_london)
+ggplot(sub_london, aes(x = Year, y = Finishers)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm",formula = 'y ~ x', se = FALSE, color = "blue") +
+  theme_minimal() +
+  labs(title = "SLR Model for Finishers", x = "Year", y = "Number of Finishers")
+```
+
+##### Prediction
+
+```{r}
+new <- data.frame('Year'= 2024)
+predict(fit4, newdata = data.frame(new), interval = c("confidence"), level = 0.95, type="response")
+```
+
+The number of applicants is estimated to be 46056 in 2024. A $95\%$ prediction interval is $(44306, 47807)$.
+
+
+##### Model Checking
+```{r}
+plot(fit4, which=1)
+plot(fit4, which=2)
+```
+
+
+
+### Create new variables and visulization
+Let $x$ denote the number of applicants in a year, $y_1$ the number of accepted in a year, $y_2$ the number of starters in a year, $y_3$ the number of finishers in a year. We define the ratio of accepted as $r_1=\frac{y_1}{x}$, ratio of starters as $r_2=\frac{y_2}{y_1}$, ratio of finishers as  $r_3=\frac{y_3}{y_2}$.
+
+```{r, fold.output=FALSE, fold.plot=FALSE}
 london_marathon <- london_marathon |> mutate(`Ratio of Accepted`=Accepted/Applicants)|>mutate(`Ratio of Starters`=Starters/Accepted)|> mutate(`Ratio of Finishers`=Finishers/Starters)
 print(london_marathon[, c("Year", "Ratio of Accepted", "Ratio of Starters","Ratio of Finishers")])
 
@@ -456,19 +603,24 @@ In 2020, there’s a notable observation in the “Accepted to Started” column
 
 This discrepancy could be due to the impact of external factors such as the COVID-19 pandemic, leading to a different pattern in that particular year.
 
-```{r}
+```{r, fold.output=FALSE, fold.plot=FALSE}
 sub_london1 <- london_marathon[1:39,]
-p1 <- ggplot(data= sub_london1, aes(x=Year, y=`Ratio of Accepted` ))+geom_point()+geom_line()
-p2 <- ggplot(data= sub_london1, aes(x=Year, y=`Ratio of Starters` ))+geom_point()+geom_line()
-p3 <- ggplot(data= sub_london1, aes(x=Year, y=`Ratio of Finishers` ))+geom_point()+geom_line()
-grid.arrange(p1, p2, p3, nrow=2, ncol=2)
+p1 <- ggplot(data= sub_london1, aes(x=Year, y=`Ratio of Accepted` ))+geom_point()+geom_line()+
+  labs(title = "Ratio of Accepted")
+p2 <- ggplot(data= sub_london1, aes(x=Year, y=`Ratio of Starters` ))+geom_point()+geom_line()+
+  labs(title = "Ratio of Starters")
+p3 <- ggplot(data= sub_london1, aes(x=Year, y=`Ratio of Finishers` ))+geom_point()+geom_line()+
+  labs(title = "Ratio of Finishers")
+grid.arrange(p1, p2, p3, ncol=1)
 ```
 
 ### Time series analysis and forecasting
-Here we use ARIMA model to make forecasts for the time series in london marathon dataset
-#### Applicants
+In this part, we will focus on four time series, which are number of applicants each year, ratio of accepted each year, ratio of starters each year, and ratio of finishers each year. We will use ARIMA(AutoRegressive Integrated Moving Average) model to analyze and make forecasts for the time series in London marathon dataset. For each time series, we will draw a forecasting plot of 10 years, check the autocorrelation function of the residuals, check the normality of the residuals, and do a Box-Ljung test(a statistical test used to check whether any of a group of autocorrelations of a time series are different from zero).
+
+
 
 ```{r}
+# a function to plot the forecast errors
 plotForecastErrors <- function(forecasterrors)
   {
      # make a histogram of the forecast errors:
@@ -493,59 +645,152 @@ plotForecastErrors <- function(forecasterrors)
 }
 ```
 
-```{r}
+
+#### Analysis of number of applicants 
+
+##### Forecasting the number of applicants in next 10 years
+
+```{r, fold.output=FALSE, fold.plot=FALSE}
 app <- london_marathon$Applicants[1:40]
 appts <- ts(app, ,frequency=1,start=1981)
 appts <- na.omit(appts)
+
+# fit the an automatic arima model
 apptsarima <- auto.arima(appts)
+# make forcast about the number of applicants in 10 years
 fc <- forecast(apptsarima, h=10)
-plot(fc)
-acf(fc$residuals, lag.max=20)
+plot(fc, xlab = "Year", ylab= "Number of Applicants", main = "Forecasts of Number of Applicants")
+```
+
+The forecasting plot shows that there will be about 6000 annual increase of number of applicants for London marathon in the next 10 years.  
+
+##### Checking ACF of the residuals
+
+```{r}
+# check autocorrelation function with lag from 1 to 20
+acf(fc$residuals, lag.max=20,main="ACF Check for Resisuals")
+```
+
+##### Box-Ljung test for residuals
+
+```{r}
+# Box-Ljung test
 Box.test(fc$residuals, lag=20, type="Ljung-Box")
+```
+
+
+##### Checking normality of the residuals
+
+```{r}
+# histogram of forecasterrors
 plotForecastErrors(fc$residuals)
 ```
 
+#### Analysis of ratio of accepted 
 
-#### Ratio of Accepted
-```{r}
+##### Forecasting ratio of accepted in next 10 years
+```{r, fold.output=FALSE, fold.plot=FALSE}
 roa <- london_marathon$`Ratio of Accepted`
 roats <- ts(roa, ,frequency=1,start=1981)
 roats<- na.omit(roats)
+
+# fit the an automatic arima model
 roatsarima <- auto.arima(roats)
+# make forcast about the number of applicants in 10 years
 fc2 <- forecast(roatsarima, h=10)
-plot(fc2)
-acf(fc2$residuals, lag.max=20)
+plot(fc2,xlab = "Year", ylab= "Number of Applicants", main = "Forecasts of Ratio of Accepted")
+```
+
+The forecasting plot shows that the ratio of accepted for London marathon in the next 10 years will generally remain constant. 
+
+##### Checking ACF of the residuals
+
+```{r}
+# check autocorrelation function with lag from 1 to 20
+acf(fc2$residuals, lag.max=20,main="ACF Check for Resisuals")
+```
+
+##### Box-Ljung test for residuals
+```{r}
+# Box-Ljung test
 Box.test(fc2$residuals, lag=20, type="Ljung-Box")
+```
+
+##### Checking normality of the residuals
+```{r}
+# histogram of forecasterrors
 plotForecastErrors(fc2$residuals)
 ```
 
-#### Ratio of Starters
+#### Analysis of ratio of starters
 
-```{r}
+##### Forecasting ratio of starters in next 10 years
+```{r, fold.output=FALSE, fold.plot=FALSE}
 ros <- london_marathon$`Ratio of Starters`
 rosts <- ts(ros, ,frequency=1,start=1981)
 rosts <- na.omit(rosts)
 rostsarima <- auto.arima(rosts)
-fc2 <- forecast(rostsarima, h=10)
-plot(fc2)
-acf(fc2$residuals, lag.max=20)
-Box.test(fc2$residuals, lag=20, type="Ljung-Box")
-plotForecastErrors(fc2$residuals)
+fc3 <- forecast(rostsarima, h=10)
+plot(fc3,xlab = "Year", ylab= "Number of Applicants", main = "Forecasts of Ratio of Starters")
+```
+
+The forecasting plot shows that the ratio of accepted for London marathon in the next 10 years will decrease. 
+
+##### Checking ACF of the residuals
+```{r}
+acf(fc3$residuals, lag.max=20,main="ACF Check for Resisuals")
+```
+
+##### Box-Ljung test for residuals
+```{r}
+Box.test(fc3$residuals, lag=20, type="Ljung-Box")
+```
+
+##### Checking normality of the residuals
+```{r}
+plotForecastErrors(fc3$residuals)
 ```
 
 
-#### Ratio of Finishers
-```{r}
+#### Analysis of ratio of finishers
+
+##### Forecasting the ratio of finishers in next 10 years
+
+```{r, fold.output=FALSE, fold.plot=FALSE}
 rof <- london_marathon$`Ratio of Finishers`
 rofts <- ts(rof, ,frequency=1,start=1981)
 rofts <- na.omit(rofts)
 roftsarima <- auto.arima(rofts)
-fc <- forecast(roftsarima, h=10)
-plot(fc)
-acf(fc$residuals, lag.max=20)
-Box.test(fc$residuals, lag=20, type="Ljung-Box")
-plotForecastErrors(fc$residuals)
+fc4 <- forecast(roftsarima, h=10)
+plot(fc4,xlab = "Year", ylab= "Number of Applicants", main = "Forecasts of Ratio of Finishers")
+
 ```
+
+The forecasting plot shows that the ratio of finishers for London marathon in the next 10 years will remain constant. 
+
+##### Checking ACF of the residuals
+```{r}
+acf(fc4$residuals, lag.max=20,main="ACF Check for Resisuals")
+
+```
+
+##### Box-Ljung test for residuals
+```{r}
+Box.test(fc4$residuals, lag=20, type="Ljung-Box")
+```
+
+##### Checking normality of the residuals
+
+```{r}
+plotForecastErrors(fc4$residuals)
+```
+
+
+Since the correlograms in models above show that none of the sample autocorrelations for lags 1-20 exceed the significance bounds, and the p-values for the Ljung-Box test are close to 1, we can conclude that there are very little evidences for non-zero autocorrelations in the forecast errors at lags 1-20.
+
+The histograms of the time series show that the forecast errors are roughly normally distributed and the means seem to be close to zero. Therefore, it is plausible that the forecast errors are normally distributed with mean zero and constant variance.
+
+Since successive forecast errors do not seem to be correlated, and the forecast errors seem to be normally distributed with means zeros and constant variances, the ARIMA(s) do seem to provide adequate predictive models for the dataset.
 
 
 
