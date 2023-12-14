@@ -29,93 +29,77 @@ data(london_marathon, package = "LondonMarathon")
 
 ## Introduction
 
-### What is the data about?  
+## The London Marathon
+
 The London Marathon, or the TCS London Marathon, is a truly special event that brings people from all walks of life together. It was the brainchild of visionaries Chris Brasher and John Disley back in 1981 and has since become the UK's second-largest annual road race, second only to the famous Great North Run in Newcastle.
 
 Usually happening in April, the marathon had a temporary switch to October in 2020, 2021, and 2022 due to the challenges posed by the COVID-19 pandemic. The course itself is known for its mostly flat terrain, winding its way around the beautiful River Thames, starting at Blackheath and ending with a grand finish at The Mall.
 
-But the London Marathon isn't just a race; it's a melting pot of experiences. There's the mass race, where people of all fitness levels challenge themselves and relish the thrill of completing a marathon. For elite long-distance runners, both men and women, there are professional races showcasing top-tier athleticism. Wheelchair races provide a platform for elite-level competition among both men and women. 
-
-Now, let's dive into the details of the marathon with the comprehensive data:
-
-London Marathon Data:
-
-   - This dataset spills the beans on everything from the number of applicants to accepted participants, starters, finishers, funds raised, and the official charities associated with each year.
-
-Winner Data:
-
-   - The second set of data gives us the lowdown on the winners in different categories over the years, including details like the category, year, the winning athlete's name, nationality, and their finishing time.
+But the London Marathon isn't just a race; it's a melting pot of experiences. There's the mass race, where people of all fitness levels challenge themselves and relish the thrill of completing a marathon. For elite long-distance runners, both men and women, there are professional races showcasing top-tier athleticism. Wheelchair races provide a platform for elite-level competition among both men and women.
 
 What truly sets the London Marathon apart is its heartwarming philanthropic side. Participants aren't just running for personal glory; they're making a difference. Since its start, the marathon has raised over £1 billion for various charities. In 2019 alone, an incredible £66.4 million was raised, marking it as the highest single-day fundraising event in the marathon's history.
 
-So, as the London Marathon continues to capture hearts and inspire runners worldwide, it's not just a race; it's a legacy of community, achievement.
+**How was it collected?**
 
-### Questions that we will look at and the methods we used
-
-1) Analyzing Trends in Winning Times Over the Years:
-   Our examination of winning times involves creating time series plots for each category or utilizing regression analysis to identify significant trends. Through careful comparison and the use of visualizations, we aim to uncover patterns and changes in winning times across various categories.
-   Exploring Wheelchair Winners' Performances:
-   Shifting our focus to inclusivity, we analyze the performances of wheelchair winners to understand how their achievements have evolved. A detailed examination of winning times helps us visualize trends, celebrating the success of wheelchair participants in the marathon.
-
-2) Comparing Winning Times Between Categories:
-   Using t-tests or analysis of variance (ANOVA), we compare winning times between different categories such as Men vs. Women and Wheelchair Men vs. Wheelchair Women. This analysis enables the exploration of variations in performance and identification of any significant differences between these categories.
-
-
-3) Correlation Analysis:
-   To delve deeper into the relationships within the data, we conduct correlation analysis. 
-
-
-4) In our exploration of the rich history of the London Marathon, we delve into a detailed examination of different aspects. To begin, let's uncover the evolving trends in marathon participation over the years by closely examining changes in the number of applicants and accepted participants. To give these numbers context and meaning, we calculate the percentage of participants who moved from being accepted to actually starting the race and, subsequently, the percentage of those starters who successfully finished. This analysis aims to reveal any noticeable trends or patterns, breathing life into the raw numbers.
+The data seems to have been collected over the years, possibly sourced from official records, the official website of the London Marathon, event organizers, media outlets such as BBC, and other reliable sources associated with the event. The information could have been compiled from participant registrations, event statistics, official reports, and media coverage.
 
 
 
-In the realm of inclusivity, we shift our focus to wheelchair winners, seeking to understand how their performances have evolved over the years. Through a detailed analysis of winning times, we aim to visualize trends and patterns, celebrating the achievements of wheelchair participants in the marathon.
+
+**For more details**:
+
+<https://en.wikipedia.org/wiki/London_Marathon>
 
 
-Turning our attention to the marathon heroes, we delve into the winner analysis. The spotlight is on the most successful marathon winners, and we aim to understand how their performances have evolved over time. By examining variables such as nationality, winning times, and identifying any discernible patterns, Visualizing winning times over the years adds a vivid layer to this exploration.
+Now, let's dive into the details of the marathon with the comprehensive data:
 
+<hr style="border: 2px solid black;">
 
-Geographical analysis becomes our compass as we investigate trends or patterns in the nationalities of winners. Employing visualizations through  maps, we seek to represent the distribution of winners' nationalities, painting a global picture of the marathon's diverse champions.
+### **Data Wrangling**
 
-In the financial realm, we track the yearly fundraising growth, exploring how the total fundraising amount has changed annually. Utilizing a line chart, we aim to capture the financial heartbeat of the London Marathon, identifying any significant spikes or drops and understanding the financial narrative that accompanies this iconic event.
+**Winners Data**
+```{r}
+#remotes::install_github("nrennie/LondonMarathon")
+data(winners, package = "LondonMarathon")
+head(winners)
+```
 
-we delve into long-term charity partnerships. By identifying charities that have consistently participated, we analyze their fundraising trends over time. This exploration unveils the enduring commitment of these charitable partners to the London Marathon and the impact of their contributions.
-
-Lastly, we conduct a comparative analysis to understand how the number of male and female participants has changed over the years. Through visualizations, we aim to illustrate the evolving dynamics of gender participation in the London Marathon, showcasing the inclusive spirit of this remarkable event.
-
-### What information does the data contain? Cases, variables? How was it collected?
-
-The data provided gives us insights into the London Marathon, offering details on the number of applicants, accepted participants, starters, finishers, funds raised, and the official charities involved for each year. Additionally, we have separate information on the winners across different categories such as Men, Women, Wheelchair Men, and Wheelchair Women throughout the years.
-
-Let's break down the key aspects:
-
-Cases: Each row in the datasets represents a specific year of the London Marathon. There are 42 entries in the "London Marathon Data" and 165 entries in the "Winner.csv" data.
-
-Variables in London Marathon Data:
-
-   - Date: Reflecting the date of the London Marathon.
-   - Year: Indicating the corresponding year of the London Marathon.
-   - Applicants: The count of individuals applying to participate in the marathon.
-   - Accepted: The number of applicants who secured a spot to participate.
-   - Starters: The count of participants who initiated the marathon.
-   - Finishers: The number of participants successfully completing the marathon.
-   - Raised: The total amount of money raised during the marathon.
-   - Official Charity: The designated charity associated with the marathon for that specific year.
-
-Variables in Winner Data:
-
-   - Category: Specifies the category of the winner (Men, Women, Wheelchair Men, Wheelchair Women).
-   - Year: Denoting the year when the London Marathon took place.
-   - Athlete: The name of the winning athlete.
-   - Nationality: The country of origin of the winning athlete.
-   - Time: The duration taken by the winning athlete to complete the marathon.
-
-How was it collected?
-
-   - The data seems to have been collected over the years, possibly sourced from official records, the official website of the London Marathon, event organizers, media outlets such as BBC, and other reliable sources associated with the event. The information could have been compiled from participant registrations, event statistics, official reports, and media coverage.
+**London Marathon Data**
+```{r}
+data(london_marathon, package = "LondonMarathon")
+head(london_marathon)
+```
 
 
 
+There are two datasets in this "LondonMarathon" package.
+
+The first dataset records information about London Marathon winners over the years. Each entry includes five variables: the winner’s category, race year, athlete name, athlete nationality, and race time.
+
+The second dataset records information about London Marathon events over the years. Each entry contains details such as the event date, year, the number of applicants, accepted participants, starters, finishers, the name of the official charity sponsoring the event, and the sponsorship amount.
+
+### Key Aspects
+
+**Cases:** Each row in the datasets represents a specific year of the London Marathon. There are 42 entries in the "London Marathon Data" and 165 entries in the "Winners Data".
+
+### Variables in London Marathon Data:
+
+- **Date:** Reflecting the date of the London Marathon.
+- **Year:** Indicating the corresponding year of the London Marathon.
+- **Applicants:** The count of individuals applying to participate in the marathon.
+- **Accepted:** The number of applicants who secured a spot to participate.
+- **Starters:** The count of participants who initiated the marathon.
+- **Finishers:** The number of participants successfully completing the marathon.
+- **Raised:** The total amount of money raised during the marathon.
+- **Official Charity:** The designated charity associated with the marathon for that specific year.
+
+### Variables in Winner Data:
+
+- **Category:** Specifies the category of the winner (Men, Women, Wheelchair Men, Wheelchair Women).
+- **Year:** Denoting the year when the London Marathon took place.
+- **Athlete:** The name of the winning athlete.
+- **Nationality:** The country of origin of the winning athlete.
+- **Time:** The duration taken by the winning athlete to complete the marathon.
 
 
 ## Data Wrangling
