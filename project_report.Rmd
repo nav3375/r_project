@@ -326,7 +326,6 @@ Overview of the dataset
 head(london_marathon)
 ```
 
-Inst from the data
 ```{r}
 cat("missing value count:", sum(is.na(london_marathon)))
 ```
@@ -343,14 +342,13 @@ ggplot(plot_data, aes(x = variable, y = percentage)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-
-So we can see that there are some missing values regarding the London Marathon.
+We can see that there are some missing values regarding the London Marathon.
 
 the Raised means amount raised for charity (£ millions), and the Official charity means Official charity.
 
-So we can think that if Official charity is NULL, it means there is no Official charity, then Raised should be 0 (or remove these values when analyzing Raised). If Official charity is not empty, and Raised is empty, then Raised Non-public, then we can fill it in using the average of other data.
+So we can think that if Official charity is NULL, it means there is no Official charity, then Raised should be 0 (or remove these values when analyzing Raised). If Official charity is not empty, and Raised is empty, then Raised is Non-public, then we can fill it in using the average of other data.
 
-For the missing other fields, we can see that the fields are the same. According to the official documentation (github), the data for the last two years is missing, so we should filter out the data for these two year (about london_marathon).
+For the missing other fields, we can see that the fields are the same. According to the official documentation (Github), the data for the last two years is missing, so we should filter out the data for these two year (about london_marathon).
 
 ```{r}
 london_marathon1 <- london_marathon %>% group_by(`Official charity`) %>% mutate(Raised=ifelse(is.na(Raised) & !is.na(`Official charity`), mean(london_marathon$Raised, na.rm=T), Raised))
@@ -378,7 +376,6 @@ From the line chart, we can see that the Raised data we filled is not helpful in
 
 ```{r}
 filter_data <- london_marathon1 %>% filter(Year >= 2007 & Year <= 2019)
-filter_data
 ```
 
 
@@ -386,10 +383,25 @@ filter_data
 ggplot(filter_data, aes(x=Year, y=Raised, group=1))+
   geom_line() + 
   geom_point() + 
+  labs(title = "Raised Over the Years (2007-2019)",
+     x = "Year",
+     y = "Raised") +
   theme()
 ```
 It can be seen that fundraising increases every year.
+Now, we assume that raised is related to the year and other people counting information.
+```{r}
+selected_data <- filter_data %>% ungroup() %>%
+  select(Year, Applicants, Accepted, Starters, Finishers, Raised)
 
+# Build a linear regression model
+linear_model <- lm(Raised ~ Year + Applicants + Accepted + Starters + Finishers, data = selected_data)
+
+# Print a summary of the model
+summary(linear_model)
+```
+
+The estimate of Year in the linear regression model for Raised is 1.054e+00, which is a positive coefficient, indicating that the amount of funds raised over the years has been on an upward trend. The overall model seems to suggest a positive relationship between the year and fundraising amounts, indicating an increasing trend over time. And the coefficients for the number of applicants, accepted participants, starters, and finishers are not statistically significant. This suggests that, based on the current model, these variables may not have a significant impact on fundraising amounts.
 
 It can be seen from this plot that the winning time of men and women in wheelchairs has become significantly faster, while the winning time of normal men and women has gradually become faster, indicating that people are gradually paying attention to the competitiveness of marathon sports.
 
@@ -442,7 +454,6 @@ p4 <- ggplot(data= sub_london, aes(x=Year, y=Finishers))+geom_point()+geom_line(
   labs(title = "Finishers")
 grid.arrange(p1, p2, p3, p4, nrow=2, ncol=2)
 ```
-
 
 ### Analyze the dataset using linear models
 In this part, we will use linear models to fit the data and predict the number of applicants, accepted, starters, and finishers in year 2024. 
@@ -591,6 +602,7 @@ print(london_marathon[, c("Year", "Ratio of Accepted", "Ratio of Starters","Rati
 
 
 ```
+
 Accepted to Started: Over the years, there is a general trend of a decline in the percentage of accepted participants who actually start the race.
 
 Started to Finished:
@@ -792,6 +804,49 @@ The histograms of the time series show that the forecast errors are roughly norm
 
 Since successive forecast errors do not seem to be correlated, and the forecast errors seem to be normally distributed with means zeros and constant variances, the ARIMA(s) do seem to provide adequate predictive models for the dataset.
 
+### Relating two data sets
+
+To associate these two data sets, we start from the same field of year.
+Now we can explore whether winning time is related to the number of finishers in that year.
+We have reason to believe that the more finishers, the faster the winning time, due to the competitive nature of the elite.(hypothesis)
+
+```{r}
+filter_data2 <- london_marathon %>% filter(Year <= 2019)
+winners_subset <- winners %>%
+  select(Year, Time)
+merged_data <- left_join(filter_data2, winners_subset, by = "Year")
+
+correlation_coefficient <- cor(merged_data$Time, merged_data$Finishers, use = "complete.obs")
+print(paste("Correlation Coefficient:", correlation_coefficient))
+plot(merged_data$Finishers, merged_data$Time,
+     xlab = "Number of Finishers",
+     ylab = "Winning Time",
+     main = "Relationship Between Finishers and Winning Time")
+abline(lm(Time ~ Finishers, data = merged_data, na.action = na.exclude), col = "red")
+
+```
+
+Correlation Coefficient is  -0.493, the moderate negative correlation suggests that there is a tendency for winning time to decrease as the number of finishers increases.
+The number of participants represents the size of the marathon, so can we assume that there is also a correlation between the number of participants and winning time?
+
+```{r}
+filter_data2 <- london_marathon %>% filter(Year <= 2019)
+winners_subset <- winners %>%
+  select(Year, Time)
+merged_data <- left_join(filter_data2, winners_subset, by = "Year")
+
+correlation_coefficient <- cor(merged_data$Time, merged_data$Applicants, use = "complete.obs")
+print(paste("Correlation Coefficient:", correlation_coefficient))
+
+plot(merged_data$Finishers, merged_data$Time,
+     xlab = "Number of Applicants",
+     ylab = "Winning Time",
+     main = "Relationship Between Applicants and Winning Time")
+abline(lm(Time ~ Finishers, data = merged_data, na.action = na.exclude), col = "red")
+
+```
+
+Correlation Coefficient is  -0.316, the mild to moderate negative correlation suggests that there is a tendency for winning time to decrease as the number of applicants increases.
 
 
 ## Clarification
@@ -824,7 +879,16 @@ london_marathon dataset
 
 
 #### Shengle Yan
-
+data wrangling part   
+london_marathon dataset   
+- Fill in the missing values of raised    
+- Filter out the last two years of data in london_marathon    
+- Create new variable   
+Relating two data sets
+- Analyze fundraising correlations with other data    
+- Explore the correlation between two data sets   
+- plot of Time versus Applicants    
+- plot of Time versus Finishers   
 
 
 
